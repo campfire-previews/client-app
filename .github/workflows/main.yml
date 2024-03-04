@@ -16,7 +16,7 @@ on:
 
 env:
   AWS_REGION: us-east-2                  # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: z1e0u7c5/team5-client-app-test           # set this to your Amazon ECR repository name
+  ECR_REPOSITORY: team5-client-app-test           # set this to your Amazon ECR repository name
   ECS_SERVICE: team5-client-app-service               # set this to your Amazon ECS service name
   ECS_CLUSTER: team5-client-app-cluster                 # set this to your Amazon ECS cluster name
   ECS_TASK_DEFINITION: ecs.json # set this to the path to your Amazon ECS task definition
