@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-2:126480444030:task-definition/sample-fargate:1",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-2:126480444030:task-definition/sample-fargate:3",
     "containerDefinitions": [
         {
             "name": "fargate-app",
