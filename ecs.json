@@ -16,6 +16,9 @@
                 "sh",
                 "-c"
             ],
+            "logConfiguration": {
+                "logDriver": "awslogs"
+            },
             "environment": [],
             "mountPoints": [],
             "volumesFrom": [],
@@ -49,9 +52,6 @@
     "requiresCompatibilities": [
         "FARGATE"
     ],
-    "logConfiguration": {
-        "logDriver": "awslogs"
-    },
     "cpu": "256",
     "memory": "512",
     "registeredAt": "2024-03-05T00:59:39.597Z",
