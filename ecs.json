@@ -50,7 +50,7 @@
         "FARGATE"
     ],
     "logConfiguration": {
-        "logDriver": "awslogs",
+        "logDriver": "awslogs"
     },
     "cpu": "256",
     "memory": "512",
