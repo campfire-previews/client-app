@@ -27,8 +27,9 @@
         }
     ],
     "family": "sample-fargate",
+    "executionRoleArn": "arn:aws:iam::126480444030:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 1,
+    "revision": 3,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -49,7 +50,7 @@
     ],
     "cpu": "256",
     "memory": "512",
-    "registeredAt": "2024-03-02T00:23:42.747Z",
+    "registeredAt": "2024-03-04T23:31:21.499Z",
     "registeredBy": "arn:aws:iam::126480444030:root",
     "tags": []
 }
