@@ -1,18 +1,19 @@
 {
+    "family": "sample-fargate", 
+    "networkMode": "awsvpc", 
     "containerDefinitions": [
         {
-            "name": "fargate-app",
-            "image": "",
-            "cpu": 0,
+            "name": "fargate-app", 
+            "image": "public.ecr.aws/docker/library/httpd:latest", 
             "portMappings": [
                 {
-                    "containerPort": 80,
-                    "hostPort": 80,
+                    "containerPort": 80, 
+                    "hostPort": 80, 
                     "protocol": "tcp"
                 }
-            ],
+            ], 
             "essential": true,
-            "logConfiguration": {
+             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-group": "client-app-log-group",
@@ -20,42 +21,18 @@
                     "awslogs-stream-prefix": "uwu"
                 }
             },
-            "environment": [],
-            "mountPoints": [],
-            "volumesFrom": [],
-            "systemControls": []
+            "entryPoint": [
+                "sh",
+		"-c"
+            ], 
+            "command": [
+                "/bin/sh -c \"echo '<html> <head> <title>Amazon ECS Sample App</title> <style>body {margin-top: 40px; background-color: #333;} </style> </head><body> <div style=color:white;text-align:center> <h1>Amazon ECS Sample App</h1> <h2>Congratulations!</h2> <p>Your application is now running on a container in Amazon ECS.</p> </div></body></html>' >  /usr/local/apache2/htdocs/index.html && httpd-foreground\""
+            ]
         }
-    ],
-    "family": "sample-fargate",
-    "executionRoleArn": "arn:aws:iam::126480444030:role/ecsTaskExecutionRole",
-    "networkMode": "awsvpc",
-    "volumes": [],
-    "status": "ACTIVE",
-    "requiresAttributes": [
-        {
-            "name": "com.amazonaws.ecs.capability.ecr-auth"
-        },
-        {
-            "name": "ecs.capability.execution-role-ecr-pull"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
-        },
-        {
-            "name": "ecs.capability.task-eni"
-        }
-    ],
-    "placementConstraints": [],
-    "compatibilities": [
-        "EC2",
-        "FARGATE"
-    ],
+    ], 
     "requiresCompatibilities": [
         "FARGATE"
-    ],
-    "cpu": "256",
-    "memory": "512",
-    "registeredAt": "2024-03-05T00:59:39.597Z",
-    "registeredBy": "arn:aws:iam::126480444030:user/team5-client-app-user",
-    "tags": []
+    ], 
+    "cpu": "256", 
+    "memory": "512"
 }
