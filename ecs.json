@@ -8,8 +8,8 @@
             "image": "public.ecr.aws/docker/library/httpd:latest", 
             "portMappings": [
                 {
-                    "containerPort": 80, 
-                    "hostPort": 80, 
+                    "containerPort": 5173, 
+                    "hostPort": 5173, 
                     "protocol": "tcp"
                 }
             ], 
