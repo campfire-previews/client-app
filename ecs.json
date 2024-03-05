@@ -17,7 +17,12 @@
                 "-c"
             ],
             "logConfiguration": {
-                "logDriver": "awslogs"
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "client-app-log-group",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-stream-prefix": "uwu"
+                }
             },
             "environment": [],
             "mountPoints": [],
