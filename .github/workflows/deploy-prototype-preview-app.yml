@@ -106,14 +106,17 @@ jobs:
         shell: bash
 
   notify_end:
-    - name: Notify Success and post URL
-      uses: hasura/comment-progress@v2.3.0
-      permissions: 
+    name: Notify about end of this deployment
+    runs-on: ubuntu-latest
+    permissions: 
         contents: write
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        repository: ${{ github.repository }}
-        commit-sha: ${{ env.COMMIT_ID }}
-        id: deploy-preview
-        message: "Thank uwu for waiting. Here's your app => ${{ env.IP }}"
-        append: true
+    steps:
+      - name: Notify Success and post URL
+        uses: hasura/comment-progress@v2.3.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          commit-sha: ${{ env.COMMIT_ID }}
+          id: deploy-preview
+          message: "Thank uwu for waiting. Here's your app => ${{ env.IP }}"
+          append: true
