@@ -1,6 +1,9 @@
 name: Create A Prototype Review App From Pull Request
 
-on: pull_request
+on:
+  pull_request:
+    branches:
+      - custom_workflow
 #    types: [opened, reopened]
 
 # NO IDEA YET. SHOULD BE AUTO OR MANUAL?
@@ -86,24 +89,21 @@ jobs:
       # Get ouput from AWS CLI?
       - name: Display IP Address for Container
         id: url
-        runs:
-          using: "composite"
-          steps:
-            - run: |
-               SERVICE_NAME="$ECS_SERVICE"
-               CLUSTER_NAME="$ECS_CLUSTER"
-  
-               TASK_ARN=$(aws ecs list-tasks --cluster "$CLUSTER_NAME" --service-name "$SERVICE_NAME" --query 'taskArns[0]' --output text)
-  
-               TASK_DETAILS=$(aws ecs describe-tasks --cluster "$CLUSTER_NAME" --task "${TASK_ARN}" --query 'tasks[0].attachments[0].details')
-  
-               ENI=$(echo $TASK_DETAILS | jq -r '.[] | select(.name=="networkInterfaceId").value')
-  
-               IP=$(aws ec2 describe-network-interfaces --network-interface-ids "${ENI}" --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
-  
-               echo "$IP >> $GITHUB_ENV"
-  
-              shell: bash
+        run: |
+         SERVICE_NAME="$ECS_SERVICE"
+         CLUSTER_NAME="$ECS_CLUSTER"
+
+         TASK_ARN=$(aws ecs list-tasks --cluster "$CLUSTER_NAME" --service-name "$SERVICE_NAME" --query 'taskArns[0]' --output text)
+
+         TASK_DETAILS=$(aws ecs describe-tasks --cluster "$CLUSTER_NAME" --task "${TASK_ARN}" --query 'tasks[0].attachments[0].details')
+
+         ENI=$(echo $TASK_DETAILS | jq -r '.[] | select(.name=="networkInterfaceId").value')
+
+         IP=$(aws ec2 describe-network-interfaces --network-interface-ids "${ENI}" --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
+
+         echo "$IP >> $GITHUB_ENV"
+
+        shell: bash
   
       - name: Notify Success and post URL
         uses: hasura/comment-progress@v2.3.0
