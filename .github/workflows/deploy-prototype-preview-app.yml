@@ -108,6 +108,8 @@ jobs:
   notify_end:
     name: Notify about end of this deployment
     runs-on: ubuntu-latest
+    needs:
+      deploy
     permissions: 
         contents: write
     steps:
