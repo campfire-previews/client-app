@@ -17,7 +17,9 @@ env:
   PR_NUMBER: ${{ github.event.number }}
 
 permissions: 
-  contents: write
+  # contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
   # demo_app_authentication:
