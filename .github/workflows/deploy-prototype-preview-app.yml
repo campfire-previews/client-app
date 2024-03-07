@@ -39,6 +39,8 @@ jobs:
   deploy:
    name: Deploy Preview App
    runs-on: ubuntu-latest
+   outputs:
+     public-url: $ {{ steps.url.outputs.public-url }}
    steps:
      - name: Checkout Code
        uses: actions/checkout@v4
@@ -91,7 +93,7 @@ jobs:
          TASK_DETAILS=$(aws ecs describe-tasks --cluster "$CLUSTER_NAME" --task "${TASK_ARN}" --query 'tasks[0].attachments[0].details')
          ENI=$(echo $TASK_DETAILS | jq -r '.[] | select(.name=="networkInterfaceId").value')
          IP=$(aws ec2 describe-network-interfaces --network-interface-ids "${ENI}" --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
-         echo "$IP >> $GITHUB_ENV"
+         echo "public-url=$IP >> $GITHUB_OUTPUT"
        shell: bash
   
   notify_end:
@@ -106,5 +108,5 @@ jobs:
          repository: ${{ github.repository }}
          number: ${{ env.PR_NUMBER }}
          id: deploy-preview
-         message: "Thank uwu for waiting. Here's your app => ${{ env.IP }}"
+         message: "Thank uwu for waiting. Here's your app => ${{ needs.deploy.outputs.public-url }}"
          append: true
