@@ -9,7 +9,7 @@ on:
 env:
   AWS_REGION: "us-east-2"
   ECR_REPOSITORY: "team5-client-app-test3"
-  ECS_SERVICE: "team5-client-app3-service"
+  ECS_SERVICE: "team5-client-app3-service-lb"
   ECS_CLUSTER: "team5-client-app3-cluster"
   ECS_TASK_DEFINITION: task-definition.json
   CONTAINER_NAME: fargate-app
@@ -21,17 +21,32 @@ permissions:
   pull-requests: write
 
 jobs:
+  generate_token:
+    runs-on: ubuntu-latest
+    outputs:
+      token: ${{ steps.app-token.outputs.token }}
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          skip-token-revoke: true
+
   notify_start:
     name: Add Pending Message
+    needs: generate_token
     runs-on: ubuntu-latest
     steps:
       - name: Notify about starting this deployment
         env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GH_TOKEN: ${{ needs.generate_token.outputs.token }}
         uses: hasura/comment-progress@v2.3.0
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ env.GH_TOKEN }}
           repository: ${{ github.repository }}
+          # commit-sha: ${{ env.COMMIT_ID }}
           number: ${{ env.PR_NUMBER }}
           id: deploy-preview
           message: "Hewwo, pwease wait \U000023F3 We are doing our best to deploy your app uwu \U00002692"
