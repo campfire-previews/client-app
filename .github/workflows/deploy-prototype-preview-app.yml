@@ -20,21 +20,21 @@ permissions:
   contents: write
 
 jobs:
-  demo_app_authentication:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate a token
-        id: generate-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ vars.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-
-      - name: Use the token
-        env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
-        run: |
-          echo "${GH_TOKEN}"
+  # demo_app_authentication:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Generate a token
+  #      id: generate-token
+  #      uses: actions/create-github-app-token@v1
+  #      with:
+  #        app-id: ${{ vars.APP_ID }}
+  #        private-key: ${{ secrets.APP_PRIVATE_KEY }}
+  #
+  #    - name: Use the token
+  #      env:
+  #        GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+  #      run: |
+  #        echo "${GH_TOKEN}"
           
   notify_start:
     name: Add Pending Message
@@ -43,8 +43,8 @@ jobs:
       - name: Notify about starting this deployment
         uses: hasura/comment-progress@v2.3.0
         with:
-          # github-token: ${{ secrets.GITHUB_TOKEN }}
-          github-token: ${{ env.GH_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # github-token: ${{ env.GH_TOKEN }}
           repository: ${{ github.repository }}
           # commit-sha: ${{ env.COMMIT_ID }}
           number: ${{ env.PR_NUMBER }}
@@ -60,7 +60,7 @@ jobs:
         with:
           ref: ${{ env.COMMIT_ID }}
   
-      - name: Configure AWS credentials (in CLI?)
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
