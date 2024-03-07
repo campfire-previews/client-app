@@ -26,12 +26,15 @@ jobs:
     outputs:
       token: ${{ steps.app-token.outputs.token }}
     steps:
-      - uses: actions/create-github-app-token@v1
+      - name: Generate token
+        uses: actions/create-github-app-token@v1
         id: app-token
         with:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           skip-token-revoke: true
+      - name: Set token output
+        run: echo "token=${{ steps.app-token.outputs.token }}" >> $GITHUB_OUTPUTS
 
   notify_start:
     name: Add Pending Message
