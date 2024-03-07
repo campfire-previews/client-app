@@ -73,11 +73,6 @@ jobs:
          task-definition: ${{ env.ECS_TASK_DEFINITION }}
          container-name: ${{ env.CONTAINER_NAME }}
          image: ${{ steps.build-image.outputs.image }}
-         log-configuration-log-driver: awslogs
-         log-configuration-options: |
-           awslogs-group=client-app-log-group
-           awslogs-region=${{ env.AWS_REGION }}
-           awslogs-stream-prefix=ecs
   
      - name: Deploy Amazon ECS task definition
        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
