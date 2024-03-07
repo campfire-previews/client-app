@@ -40,7 +40,7 @@ jobs:
    name: Deploy Preview App
    runs-on: ubuntu-latest
    outputs:
-     public-url: $ {{ steps.url.outputs.public-url }}
+     public-url: ${{ steps.url.outputs.public-url }}
    steps:
      - name: Checkout Code
        uses: actions/checkout@v4
