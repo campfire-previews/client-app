@@ -20,21 +20,36 @@ permissions:
   contents: read
 
 jobs:
+  demo_app_authentication:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Use the token
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          
   notify_start:
     name: Add Pending Message
     runs-on: ubuntu-latest
+    needs: demo_app_authentication
     permissions: 
       contents: write
     steps:
-    - uses: actions/github-script@v6
-      with:
-        script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: '👋 Thanks for reporting!'
-          })
+      - name: Notify about starting this deployment
+        uses: hasura/comment-progress@v2.3.0
+        with:
+          github-token: ${{ env.GH_TOKEN }}
+          repository: ${{ github.repository }}
+          # commit-sha: ${{ env.COMMIT_ID }}
+          number: ${{ env.PR_NUMBER }}
+          id: deploy-preview
+          message: "Hewwo, pwease wait. We are doing our best uwu"
 
 
   deploy:
