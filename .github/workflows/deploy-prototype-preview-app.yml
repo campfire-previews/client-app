@@ -27,7 +27,7 @@ jobs:
       - name: Notify about starting this deployment
         uses: hasura/comment-progress@v2.3.0
         with:
-          github-token: ${{ env.GH_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           # commit-sha: ${{ env.COMMIT_ID }}
           number: ${{ env.PR_NUMBER }}
