@@ -26,15 +26,16 @@ jobs:
     permissions: 
       contents: write
     steps:
-      - name: Notify about starting this deployment
-        uses: hasura/comment-progress@v2.3.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          # commit-sha: ${{ env.COMMIT_ID }}
-          number: ${{ env.PR_NUMBER }}
-          id: deploy-preview
-          message: "Hewwo, pwease wait. We are doing our best uwu"
+    - uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '👋 Thanks for reporting!'
+          })
+
 
   deploy:
     name: Deploy Preview App
