@@ -46,7 +46,7 @@ jobs:
     name: Deploy Preview App
     runs-on: ubuntu-latest
     outputs:
-      public-url: ${{ steps.url.outputs.public-url }}
+      public-url: ${{ steps.generate-public-url.outputs.public-url }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -195,12 +195,13 @@ jobs:
         shell: bash
       
       - name: "Waiting for app service to be stable"
+        id: generate-public-url
         run: |
           aws ecs wait services-stable \
             --cluster $ECS_CLUSTER \
             --services $PROJECT-$PR_NUMBER
 
-          echo "PUBLIC_URL=$PROJECT-$PR_NUMBER.preview.icyntkt.xyz" >> $GITHUB_ENV
+          echo "PUBLIC_URL=$PROJECT-$PR_NUMBER.preview.icyntkt.xyz" >> $GITHUB_OUTPUT
         shell: bash
 
   notify_end:
@@ -221,5 +222,5 @@ jobs:
           repository: ${{ github.repository }}
           number: ${{ env.PR_NUMBER }}
           id: deploy-preview
-          message: "| \U00002705 | Yay! Visit your super cool amazing preview app here ${{ env.PUBLIC_URL }} |"
+          message: "| \U00002705 | Yay! Visit your super cool amazing preview app here ${{ needs.deploy.outputs.public-url }} |"
           append: true
