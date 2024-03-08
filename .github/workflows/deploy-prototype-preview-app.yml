@@ -7,15 +7,15 @@ on:
     types: [opened, reopened]
 
 env:
-  AWS_REGION: "us-east-2"
-  ECR_REPOSITORY: "team5-client-app-test3"
-  ECS_SERVICE: ${{github.repository}}-${{ github.event.number }}
-  ECS_CLUSTER: "team5-client-app3-cluster"
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: team5-client-app-test3
+  ECS_SERVICE: team5-client-app3-service-lb # eventually change to ${{github.repository}}-${{ github.event.number }}
+  ECS_CLUSTER: team5-client-app3-cluster
   # ECS_TASK_DEFINITION: task-definition.json
   CONTAINER_NAME: fargate-app
   COMMIT_ID: ${{ github.event.pull_request.head.sha }}
   PR_NUMBER: ${{ github.event.number }}
-  LB_URL: "http://client-app.preview.icyntkt.xyz/"
+  LB_URL: http://client-app.preview.icyntkt.xyz/
 
 permissions:
   issues: write
