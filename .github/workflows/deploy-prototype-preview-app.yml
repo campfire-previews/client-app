@@ -8,14 +8,16 @@ on:
 
 env:
   AWS_REGION: us-east-2
+  PROJECT: client-app
   ECR_REPOSITORY: team5-client-app-test3
   ECS_SERVICE: team5-client-app3-service-lb # eventually change to ${{github.repository}}-${{ github.event.number }}
   ECS_CLUSTER: team5-client-app3-cluster
-  # ECS_TASK_DEFINITION: task-definition.json
   CONTAINER_NAME: fargate-app
   COMMIT_ID: ${{ github.event.pull_request.head.sha }}
   PR_NUMBER: ${{ github.event.number }}
   LB_URL: http://client-app.preview.icyntkt.xyz/
+  SUBNET_NAME: GANDER  # Gander-Subnet
+  SG_NAME: task-security-group    # Gander-Security-3
 
 permissions:
   issues: write
@@ -73,9 +75,9 @@ jobs:
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Create task definition file
-        id: create-task-def
+        id: create-task-def-temp
         run: |
-          cat << TASK_DEF > ./task-definition-2.json
+          cat << TASK_DEF_TEMP > ./task-definition-template.json
           {
             "executionRoleArn": "arn:aws:iam::126480444030:role/ecsTaskExecutionRole",
             "family": "sample-fargate", 
@@ -108,36 +110,94 @@ jobs:
             "cpu": "256", 
             "memory": "512"
           }
-          TASK_DEF
-          echo "taskdef=$(jq -r tostring task-definition.json)" >> $GITHUB_OUTPUT
+          TASK_DEF_TEMP
         shell: bash
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: task-definition-2.json
+          task-definition: task-definition-template.json
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
-      - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ env.ECS_SERVICE }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
-
-      - name: Display IP Address for Container
-        id: url
+      # ========
+      - name: Create Target Group
+        id: target-group
         run: |
-          SERVICE_NAME="$ECS_SERVICE"
-          CLUSTER_NAME="$ECS_CLUSTER"
-          TASK_ARN=$(aws ecs list-tasks --cluster "$CLUSTER_NAME" --service-name "$SERVICE_NAME" --query 'taskArns[0]' --output text)
-          TASK_DETAILS=$(aws ecs describe-tasks --cluster "$CLUSTER_NAME" --task "${TASK_ARN}" --query 'tasks[0].attachments[0].details')
-          ENI=$(echo $TASK_DETAILS | jq -r '.[] | select(.name=="networkInterfaceId").value')
-          IP=$(aws ec2 describe-network-interfaces --network-interface-ids "${ENI}" --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
-          echo "public-url=$IP" >> $GITHUB_OUTPUT
+          echo "Creating Target Group"
+  
+          VPC_ID=$(aws ec2 describe-vpcs \
+          --query 'Vpcs[0].VpcId' \
+          --output text)
+  
+          TARGET_GROUP_ARN=$(aws elbv2 create-target-group \
+          --name $PROJECT-$PR_NUMBER \
+          --vpc-id $VPC_ID \
+          --protocol HTTP \
+          --port 5173 \
+          --target-type ip \
+          --query 'TargetGroups[0].TargetGroupArn' \
+          --output text)
+  
+          echo "Creating Rule"
+  
+          ALB_ARN=$(aws elbv2 describe-load-balancers \
+          --query 'LoadBalancers[?LoadBalancerName==`team5-load-balancer`] | [0].LoadBalancerArn' \
+          --output text)
+  
+          LISTENER_ARN=$(aws elbv2 describe-listeners \
+          --load-balancer-arn $ALB_ARN \
+          --query 'Listeners[?Port==`80`] | [0].ListenerArn' \
+          --output text)
+  
+          cat << RULES >> ./rules-conditions.json
+          [
+            {
+              "Field": "host-header",
+              "Values": ["$PROJECT-$PR_NUMBER.preview.icyntkt.xyz"]
+            }
+          ]
+          RULES
+  
+          RULE_ARN=$(aws elbv2 create-rule \
+          --listener-arn $LISTENER_ARN \
+          --conditions file://./rules-conditions.json \
+          --priority $PR_NUMBER \
+          --actions Type=forward,TargetGroupArn=$TARGET_GROUP_ARN \
+          --query 'Rules[0].RuleArn' \
+          --output text)
+  
+          echo "TARGET_GROUP_ARN=$TARGET_GROUP_ARN" >> $GITHUB_ENV
+        shell: bash
+
+      - name: "Launching App Service"
+        env:
+          APP_TASK_DEF: ${{ steps.task-def.outputs.task-definition }}
+        run: |
+          echo "APP_SERVICE=$(aws ecs create-service \
+            --cluster $ECS_CLUSTER \
+            --service-name $PROJECT-$PR_NUMBER \
+            --task-definition $APP_TASK_DEF \
+            --desired-count 1 \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={ \
+                subnets=["subnet-01cef9a94723b1c34", "subnet-0a0f5076b5be2a6ae", "subnet-0906f478444c51e41"], \
+                securityGroups=["sg-0dd59509b20ad0cfd"], \
+                assignPublicIp=ENABLED \
+              }" \
+            --load-balancers targetGroupArn=$TARGET_GROUP_ARN,containerName=$CONTAINER_NAME,containerPort=5173 \
+            --query 'service.serviceArn' \
+            --output text)" >> $GITHUB_ENV
+        shell: bash
+      
+      - name: "Waiting for app service to be stable"
+        run: |
+          aws ecs wait services-stable \
+            --cluster $ECS_CLUSTER \
+            --services $PROJECT-$PR_NUMBER
+
+          echo "PUBLIC_URL=$PROJECT-$PR_NUMBER.preview.icyntkt.xyz" >> $GITHUB_ENV
         shell: bash
 
   notify_end:
@@ -158,5 +218,5 @@ jobs:
           repository: ${{ github.repository }}
           number: ${{ env.PR_NUMBER }}
           id: deploy-preview
-          message: "| \U00002705 | Yay! Visit your super cool amazing preview app here ${{ env.LB_URL }} |"
+          message: "| \U00002705 | Yay! Visit your super cool amazing preview app here ${{ env.PUBLIC_URL }} |"
           append: true
