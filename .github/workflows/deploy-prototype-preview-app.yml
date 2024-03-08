@@ -24,8 +24,6 @@ permissions:
 jobs:
   generate_token:
     runs-on: ubuntu-latest
-    outputs:
-      token: ${{ steps.app-token.outputs.token }}
     steps:
       - name: Generate token
         uses: actions/create-github-app-token@v1
@@ -34,27 +32,15 @@ jobs:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           skip-token-revoke: true
-      - name: Set token output
-        run: echo "token=${{ steps.app-token.outputs.token }}" >> $GITHUB_OUTPUT
-
-  notify_start:
-    name: Add Pending Message
-    needs: generate_token
-    runs-on: ubuntu-latest
-    steps:
       - name: Notify about starting this deployment
-        env:
-          GITHUB_TOKEN: ${{ needs.generate_token.outputs.token }}
         uses: hasura/comment-progress@v2.3.0
         with:
-          # github-token: ${{ secrets.GITHUB_TOKEN }}
-          github-token: ${{ env.GITHUB_TOKEN }}
+          github-token: ${{ steps.app-token.outputs.token }}
           repository: ${{ github.repository }}
-          # commit-sha: ${{ env.COMMIT_ID }}
           number: ${{ env.PR_NUMBER }}
           id: deploy-preview
           message: "Hewwo, pwease wait \U000023F3 We are doing our best to deploy your app uwu \U00002692"
-
+          
   deploy:
    name: Deploy Preview App
    runs-on: ubuntu-latest
