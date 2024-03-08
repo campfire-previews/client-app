@@ -201,7 +201,7 @@ jobs:
             --cluster $ECS_CLUSTER \
             --services $PROJECT-$PR_NUMBER
 
-          echo "public-url=$PROJECT-$PR_NUMBER.preview.icyntkt.xyz" >> $GITHUB_OUTPUT
+          echo "public-url=http://$PROJECT-$PR_NUMBER.preview.icyntkt.xyz" >> $GITHUB_OUTPUT
         shell: bash
 
   notify_end:
