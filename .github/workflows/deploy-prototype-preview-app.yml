@@ -3,7 +3,7 @@ name: Deploy a Prototype Preview App
 on:
   pull_request:
     branches:
-      - custom_workflow
+      - main
     types: [opened, reopened]
 
 env:
