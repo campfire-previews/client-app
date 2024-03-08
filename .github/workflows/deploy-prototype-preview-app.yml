@@ -9,7 +9,7 @@ on:
 env:
   AWS_REGION: "us-east-2"
   ECR_REPOSITORY: "team5-client-app-test3"
-  ECS_SERVICE: "team5-client-app3-service"
+  ECS_SERVICE: "team5-client-app3-service-lb"
   ECS_CLUSTER: "team5-client-app3-cluster"
   ECS_TASK_DEFINITION: task-definition.json
   CONTAINER_NAME: fargate-app
