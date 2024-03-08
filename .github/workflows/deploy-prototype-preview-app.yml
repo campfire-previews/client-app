@@ -9,9 +9,9 @@ on:
 env:
   AWS_REGION: "us-east-2"
   ECR_REPOSITORY: "team5-client-app-test3"
-  ECS_SERVICE: "team5-client-app3-service"
+  ECS_SERVICE: ${{github.repository}}-${{ github.event.number }}
   ECS_CLUSTER: "team5-client-app3-cluster"
-  ECS_TASK_DEFINITION: task-definition.json
+  # ECS_TASK_DEFINITION: task-definition.json
   CONTAINER_NAME: fargate-app
   COMMIT_ID: ${{ github.event.pull_request.head.sha }}
   PR_NUMBER: ${{ github.event.number }}
@@ -72,11 +72,51 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+      - name: Create task definition file
+        id: create-task-def
+        run: |
+          cat << TASK_DEF > ./task-definition.json
+          {
+            "executionRoleArn": "arn:aws:iam::126480444030:role/ecsTaskExecutionRole",
+            "family": "sample-fargate", 
+            "networkMode": "awsvpc", 
+            "containerDefinitions": [
+                {
+                    "name": "fargate-app", 
+                    "image": "", 
+                    "portMappings": [
+                        {
+                            "containerPort": 5173, 
+                            "hostPort": 5173, 
+                            "protocol": "tcp"
+                        }
+                    ], 
+                    "essential": true,
+                    "logConfiguration": {
+                        "logDriver": "awslogs",
+                        "options": {
+                            "awslogs-group": "client-app-log-group",
+                            "awslogs-region": "us-east-2",
+                            "awslogs-stream-prefix": "uwu"
+                        }
+                    }
+                }
+            ], 
+            "requiresCompatibilities": [
+                "FARGATE"
+            ], 
+            "cpu": "256", 
+            "memory": "512"
+          }
+          TASK_DEF
+          echo "taskdef=$(jq -r tostring task-definition.json)" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          task-definition: ${{ steps.create-task-def.outputs.taskdef }}
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
