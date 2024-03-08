@@ -75,7 +75,7 @@ jobs:
       - name: Create task definition file
         id: create-task-def
         run: |
-          cat << TASK_DEF > ./task-definition.json
+          cat << TASK_DEF > ./task-definition-2.json
           {
             "executionRoleArn": "arn:aws:iam::126480444030:role/ecsTaskExecutionRole",
             "family": "sample-fargate", 
@@ -116,7 +116,7 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ${{ steps.create-task-def.outputs.taskdef }}
+          task-definition: task-definition-2.json
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
