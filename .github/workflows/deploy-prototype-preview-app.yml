@@ -1,4 +1,4 @@
-name: Deploy a Prototype Review App from Pull Request and Post Status Updates in Comments
+name: Deploy a Prototype Review App
 
 on:
   pull_request:
