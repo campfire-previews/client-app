@@ -121,6 +121,18 @@ jobs:
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
+      - name: Register task definition
+        env:
+          TASK_DEF: ${{ steps.task-def.outputs.task-definition }}
+        run: |
+          echo "Registering Task Definition"
+          echo "APP_TASK_DEF=$(aws ecs register-task-definition \
+          --family $PROJECT-$PR_NUMBER \
+          --cli-input-json file://$TASK_DEF \
+          --query 'join(`:`,taskDefinition.[family,to_string(revision)])' \
+          --output text)" >> $GITHUB_ENV
+        shell: bash
+
       # ========
       - name: Create Target Group
         id: target-group
