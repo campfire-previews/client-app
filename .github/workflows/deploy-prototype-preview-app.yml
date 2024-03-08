@@ -1,4 +1,4 @@
-name: Deploy a Prototype Review App
+name: Deploy a Prototype Preview App
 
 on:
   pull_request:
@@ -9,109 +9,109 @@ on:
 env:
   AWS_REGION: "us-east-2"
   ECR_REPOSITORY: "team5-client-app-test3"
-  ECS_SERVICE: "team5-client-app3-service-lb"
+  ECS_SERVICE: "team5-client-app3-service"
   ECS_CLUSTER: "team5-client-app3-cluster"
   ECS_TASK_DEFINITION: task-definition.json
   CONTAINER_NAME: fargate-app
   COMMIT_ID: ${{ github.event.pull_request.head.sha }}
   PR_NUMBER: ${{ github.event.number }}
+  LB_URL: "http://client-app.preview.icyntkt.xyz/"
 
 permissions:
-  contents: read
   issues: write
   pull-requests: write
 
 jobs:
-  generate_token:
+  notify_start:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate token
+      - name: Generate token for GitHub App
         uses: actions/create-github-app-token@v1
         id: app-token
         with:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           skip-token-revoke: true
-      - name: Notify about starting this deployment
+      - name: Notify the deployment has started
         uses: hasura/comment-progress@v2.3.0
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           repository: ${{ github.repository }}
           number: ${{ env.PR_NUMBER }}
           id: deploy-preview
-          message: "Hewwo, pwease wait \U000023F3 We are doing our best to deploy your app uwu \U00002692"
-          
+          message: "| Status | Message |\n|--------|-------|\n| \U00002692 | Your preview app is currently being built and deployed to AWS |"
+
   deploy:
-   name: Deploy Preview App
-   runs-on: ubuntu-latest
-   outputs:
-     public-url: ${{ steps.url.outputs.public-url }}
-   steps:
-     - name: Checkout Code
-       uses: actions/checkout@v4
-       with:
-         ref: ${{ env.COMMIT_ID }}
-  
-     - name: Configure AWS credentials
-       uses: aws-actions/configure-aws-credentials@v4
-       with:
-         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-         aws-region: ${{ env.AWS_REGION }}
-  
-     - name: Login to Amazon ECR
-       id: login-ecr
-       uses: aws-actions/amazon-ecr-login@v2
-  
-     - name: Build, tag, and push image to Amazon ECR
-       id: build-image
-       env:
-         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-         IMAGE_TAG: ${{ github.sha }}
-       run: |
-         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-  
-     - name: Fill in the new image ID in the Amazon ECS task definition
-       id: task-def
-       uses: aws-actions/amazon-ecs-render-task-definition@v1
-       with:
-         task-definition: ${{ env.ECS_TASK_DEFINITION }}
-         container-name: ${{ env.CONTAINER_NAME }}
-         image: ${{ steps.build-image.outputs.image }}
-  
-     - name: Deploy Amazon ECS task definition
-       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-       with:
-         task-definition: ${{ steps.task-def.outputs.task-definition }}
-         service: ${{ env.ECS_SERVICE }}
-         cluster: ${{ env.ECS_CLUSTER }}
-         wait-for-service-stability: true
-  
-     - name: Display IP Address for Container
-       id: url
-       run: |
-         SERVICE_NAME="$ECS_SERVICE"
-         CLUSTER_NAME="$ECS_CLUSTER"
-         TASK_ARN=$(aws ecs list-tasks --cluster "$CLUSTER_NAME" --service-name "$SERVICE_NAME" --query 'taskArns[0]' --output text)
-         TASK_DETAILS=$(aws ecs describe-tasks --cluster "$CLUSTER_NAME" --task "${TASK_ARN}" --query 'tasks[0].attachments[0].details')
-         ENI=$(echo $TASK_DETAILS | jq -r '.[] | select(.name=="networkInterfaceId").value')
-         IP=$(aws ec2 describe-network-interfaces --network-interface-ids "${ENI}" --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
-         echo "public-url=$IP" >> $GITHUB_OUTPUT
-       shell: bash
-  
+    name: Deploy Preview App
+    runs-on: ubuntu-latest
+    outputs:
+      public-url: ${{ steps.url.outputs.public-url }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.COMMIT_ID }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Display IP Address for Container
+        id: url
+        run: |
+          SERVICE_NAME="$ECS_SERVICE"
+          CLUSTER_NAME="$ECS_CLUSTER"
+          TASK_ARN=$(aws ecs list-tasks --cluster "$CLUSTER_NAME" --service-name "$SERVICE_NAME" --query 'taskArns[0]' --output text)
+          TASK_DETAILS=$(aws ecs describe-tasks --cluster "$CLUSTER_NAME" --task "${TASK_ARN}" --query 'tasks[0].attachments[0].details')
+          ENI=$(echo $TASK_DETAILS | jq -r '.[] | select(.name=="networkInterfaceId").value')
+          IP=$(aws ec2 describe-network-interfaces --network-interface-ids "${ENI}" --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
+          echo "public-url=$IP" >> $GITHUB_OUTPUT
+        shell: bash
+
   notify_end:
-   name: Notify about end of this deployment
-   runs-on: ubuntu-latest
-   needs: deploy
-   steps:
-     - name: Notify Success and post URL
-       uses: hasura/comment-progress@v2.3.0
-       with:
-         github-token: ${{ secrets.GITHUB_TOKEN }}
-         repository: ${{ github.repository }}
-         number: ${{ env.PR_NUMBER }}
-         id: deploy-preview
-         message: "Thank uwu for waiting. Here's your app => ${{ needs.deploy.outputs.public-url }}"
-         append: true
+    name: Notify deployment is complete
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Notify Success and post URL
+        uses: hasura/comment-progress@v2.3.0
+        with:
+          # github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          number: ${{ env.PR_NUMBER }}
+          id: deploy-preview
+          message: "| \U00002705 | Yay! Visit your super cool amazing preview app here ${{ env.LB_URL }} |"
+          append: true
