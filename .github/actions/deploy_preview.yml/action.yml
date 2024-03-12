@@ -1,0 +1,147 @@
+name: Deploy preview app
+description: Build image, define task, and deploy with fargate
+outputs:
+  url: ${{ steps.generate-url.outputs.url }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Create task definition file
+      env:
+        IMAGE: ${{ steps.build-image.outputs.image }}
+      id: create-task-def
+      run: |
+        cat << TASK_DEF > ./task-definition.json
+        {
+          "executionRoleArn": "$ROLE_ARN",
+          "family": "$PREVIEW_NAME", 
+          "networkMode": "awsvpc", 
+          "containerDefinitions": [
+            {
+              "name": "$PREVIEW_NAME", 
+              "image": "$IMAGE", 
+              "portMappings": [
+                {
+                    "containerPort": "$PORT", 
+                    "hostPort": "$PORT", 
+                    "protocol": "tcp"
+                }
+              ], 
+              "essential": true,
+              "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                  "awslogs-create-group": "true",
+                  "awslogs-region": "$AWS_REGION",
+                  "awslogs-group": "our-app-logs-$PROJECT",
+                  "awslogs-stream-prefix": "$PROJECT"
+                }
+              }
+            }
+          ], 
+          "requiresCompatibilities": [
+            "FARGATE"
+          ], 
+          "cpu": "256", 
+          "memory": "512"
+        }
+        TASK_DEF
+      shell: bash
+
+    - name: Register task definition
+      id: register-task-definition
+      run: |
+        echo "Registering Task Definition"
+        echo "APP_TASK_DEF=$(aws ecs register-task-definition \
+        --family $PREVIEW_NAME \
+        --cli-input-json file://task-definition.json \
+        --query 'join(`:`,taskDefinition.[family,to_string(revision)])' \
+        --output text)" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Create Target Group
+      id: target-group
+      run: |
+        echo "Creating Target Group"
+
+        VPC_ID=$(aws ec2 describe-vpcs \
+        --query 'Vpcs[0].VpcId' \
+        --output text)
+
+        TARGET_GROUP_ARN=$(aws elbv2 create-target-group \
+        --name $PREVIEW_NAME \
+        --vpc-id $VPC_ID \
+        --protocol HTTP \
+        --port $PORT \
+        --target-type ip \
+        --query 'TargetGroups[0].TargetGroupArn' \
+        --output text)
+
+        echo "Creating Rule"
+
+        ALB_ARN=$(aws elbv2 describe-load-balancers \
+        --query 'LoadBalancers[?LoadBalancerName==`our-app`] | [0].LoadBalancerArn' \
+        --output text)
+
+        LISTENER_ARN=$(aws elbv2 describe-listeners \
+        --load-balancer-arn $ALB_ARN \
+        --query 'Listeners[?Port==`80`] | [0].ListenerArn' \
+        --output text)
+
+        cat << RULES >> ./rules-conditions.json
+        [
+          {
+            "Field": "host-header",
+            "Values": ["$PREVIEW_NAME.$DOMAIN"]
+          }
+        ]
+        RULES
+
+        RULE_ARN=$(aws elbv2 create-rule \
+        --listener-arn $LISTENER_ARN \
+        --conditions file://./rules-conditions.json \
+        --priority $PR_NUMBER \
+        --actions Type=forward,TargetGroupArn=$TARGET_GROUP_ARN \
+        --query 'Rules[0].RuleArn' \
+        --output text)
+
+        echo "TARGET_GROUP_ARN=$TARGET_GROUP_ARN" >> $GITHUB_ENV
+      shell: bash
+
+    - name: "Launching App Service"
+      run: |
+        echo "APP_SERVICE=$(aws ecs create-service \
+          --cluster $ECS_CLUSTER \
+          --service-name $PREVIEW_NAME \
+          --task-definition $APP_TASK_DEF \
+          --desired-count 1 \
+          --launch-type FARGATE \
+          --network-configuration "awsvpcConfiguration={ \
+              subnets=[$SUBNET_ID], \
+              securityGroups=[$SG_NAME], \
+              assignPublicIp=ENABLED \
+            }" \
+          --load-balancers targetGroupArn=$TARGET_GROUP_ARN,containerName=$PREVIEW_NAME,containerPort=$PORT \
+          --query 'service.serviceArn' \
+          --output text)" >> $GITHUB_ENV
+      shell: bash
+
+    - name: "Waiting for app service to be stable"
+      id: generate-url
+      run: |
+        aws ecs wait services-stable \
+          --cluster $ECS_CLUSTER \
+          --services $PREVIEW_NAME
+
+        echo "url=http://$PREVIEW_NAME.$DOMAIN" >> $GITHUB_OUTPUT
+      shell: bash
