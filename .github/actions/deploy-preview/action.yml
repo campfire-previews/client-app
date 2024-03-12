@@ -135,7 +135,7 @@ runs:
           --desired-count 1 \
           --launch-type FARGATE \
           --network-configuration "awsvpcConfiguration={ \
-              subnets=[$SUBNET_ID], \
+              subnets=[$SUBNET_NAME], \
               securityGroups=[$SG_NAME], \
               assignPublicIp=ENABLED \
             }" \
