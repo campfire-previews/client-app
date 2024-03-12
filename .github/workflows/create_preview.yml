@@ -10,7 +10,7 @@ env:
   PROJECT: ${{ github.event.repository.name }}
   COMMIT_ID: ${{ github.event.pull_request.head.sha }}
   PR_NUMBER: ${{ github.event.number }}
-  DOMAIN: feedback-interface.icyntkt.xyz/ # OurApp Subdomain
+  DOMAIN: feedback-interface.icyntkt.xyz # OurApp Subdomain
   AWS_REGION: us-east-2 # REGION
   ECR_REPOSITORY: team5-client-app-test3 # IMAGE_REPOSITORY
   ECS_CLUSTER: team5-client-app3-cluster # CLUSTER_NAME
