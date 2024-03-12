@@ -20,6 +20,7 @@ env:
   ECS_CLUSTER: team5-client-app3-cluster # CLUSTER_NAME
   PORT: 5173 # PORT
   ROLE_ARN: arn:aws:iam::126480444030:role/ecsTaskExecutionRole # EXECUTION_ROLE_ARN
+  LB_NAME: team5-load-balancer
   SUBNET_NAME: subnet-01cef9a94723b1c34 # DEFAULT_SUBNET
   SG_NAME: sg-0dd59509b20ad0cfd # SECURITY_GROUP
 
