@@ -1,7 +1,8 @@
 name: Deploy preview app
 description: Build image, define task, and deploy with fargate
 outputs:
-  url: ${{ steps.generate-url.outputs.url }}
+  url:
+    value: ${{ steps.generate-url.outputs.url }}
 
 runs:
   using: "composite"

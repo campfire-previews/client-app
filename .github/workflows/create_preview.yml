@@ -64,6 +64,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Define task definition and deploy to Amazon ECS
+        id: deploy-preview-app
         uses: ./.github/actions/deploy-preview
 
       - name: Comment status on pull request
@@ -73,5 +74,5 @@ jobs:
           github-token: ${{ steps.app-token.outputs.token }}
           repository: ${{ github.repository }}
           number: ${{ env.PR_NUMBER }}
-          message: "| \U00002705 | Yay! Visit your super cool amazing preview app here ${{ needs.deploy_app.outputs.url }} |"
+          message: "| \U00002705 | Yay! Visit your super cool amazing preview app here ${{ steps.deploy-preview-app.outputs.url }} |"
           append: true
