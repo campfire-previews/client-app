@@ -1,0 +1,92 @@
+name: Delete preview app
+description: Deletes ECR images, task definitions, and the ECS service.
+
+# Why can you use {{}} in shell script?
+# Why can we use $PREVIEW_NAME in next run?
+# WTF is this ECR_SEED_IMAGE_TAG=${{ env.PROJECT }}-seed-${{ env.PR_NUMBER }}
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        IMAGE_TAG=${{ github.sha }}
+
+#        ECR_SEED_IMAGE_TAG=${{ env.PROJECT }}-seed-${{ env.PR_NUMBER }}
+#       included on line 18 > imageTag=$ECR_SEED_IMAGE_TAG
+        aws ecr batch-delete-image \
+        --repository-name $ECR_REPOPOSITORY \
+        --image-ids imageTag=$IMAGE_TAG \
+        --query 'imageIds[*].imageTag'
+      shell: bash
+    - run: |
+        TASK_FAMILY=${{ env.PREVIEW_NAME}}
+
+        APP_TASK_ARN=$(aws ecs list-task-definitions \
+        --family-prefix $TASK_FAMILY \
+        --query 'taskDefinitionArns[0]' \
+        --output text)
+
+        aws ecs deregister-task-definition \
+        --task-definition $APP_TASK_ARN \
+        --query 'taskDefinition.taskDefinitionArn'
+      shell: bash
+
+# Why is this set up?
+# Where does Gander do this?
+    - run: |
+#        SETUP_TASK_FAMILY=$PROJECT-setup-$PR_NUMBER
+        TASK_FAMILY=$PREVIEW_NAME
+
+        SETUP_TASK_ARN=$(aws ecs list-task-definitions \
+#        --family-prefix $SETUP_TASK_FAMILY \
+        --family-prefix $TASK_FAMILY \
+
+        --query 'taskDefinitionArns[0]' \
+        --output text)
+
+        aws ecs deregister-task-definition \
+        --task-definition $SETUP_TASK_ARN \
+        --query 'taskDefinition.taskDefinitionArn'
+      shell: bash
+
+    - run: |
+        echo "Deleting load balancer rules and target group"
+
+        ALB_ARN=$(aws elbv2 describe-load-balancers \
+        --query 'LoadBalancers[?LoadBalancerName==`preview-app`] | [0].LoadBalancerArn' \
+        --output text)
+
+        LISTENER_ARN=$(aws elbv2 describe-listeners \
+        --load-balancer-arn $ALB_ARN \
+        --query 'Listeners[?Port==`80`] | [0].ListenerArn' \
+        --output text)
+
+        RULE_ARN=$(aws elbv2 describe-rules \
+        --listener-arn $LISTENER_ARN \
+        --query "Rules[?Conditions[?Values[?contains(@, '$PROJECT-$PR_NUMBER')]]].RuleArn | [0]" \
+        --output text)
+
+        aws elbv2 delete-rule \
+        --rule-arn $RULE_ARN
+
+        TARGET_GROUP_ARN=$(aws elbv2 describe-target-groups \
+#        --names Gander-$PREVIEW_NAME \
+        --names $PREVIEW_NAME \
+        --query 'TargetGroups[0].TargetGroupArn' \
+        --output text)
+
+        aws elbv2 delete-target-group \
+        --target-group-arn $TARGET_GROUP_ARN
+      shell: bash
+
+    - run: |
+        ECS_SERVICE_NAME=$(aws ecs list-services \
+        --cluster $PROJECT \
+        --query 'serviceArns[*]' \
+        | grep -o "$PREVIEW_NAME[^\"]*")
+
+        aws ecs delete-service \
+        --cluster $PROJECT \
+        --service $ECS_SERVICE_NAME \
+        --force \
+        --query 'service.serviceName'
+      shell: bash

@@ -1,0 +1,31 @@
+name: Comment on PR
+description: Post or update comment with status
+inputs:
+  message:
+    description: "String describing current status"
+    required: true
+    default: "This messsage has no content."
+  append:
+    description: "'true' if new comment; 'false' if updating existing comment"
+    required: true
+    default: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate GitHub App token
+      uses: actions/create-github-app-token@v1
+      id: app-token
+      with:
+        app-id: ${{ vars.APP_ID }}
+        private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+    - name: Comment status on pull request
+      uses: hasura/comment-progress@v2.3.0
+      with:
+        id: status-notification
+        github-token: ${{ steps.app-token.outputs.token }}
+        repository: ${{ github.repository }}
+        number: ${{ env.PR_NUMBER }}
+        message: ${{ inputs.msg }}
+        append: ${{ inputs.append }}
