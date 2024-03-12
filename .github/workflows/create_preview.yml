@@ -34,7 +34,7 @@ jobs:
         with:
           ref: ${{ env.COMMIT_ID }}
 
-      - uses: ./.github/actions/post-comment@v1
+      - uses: ./.github/actions/post-comment
         with:
           message: "| Status | Message |\n|--------|-------|\n| \U00002692 | Your preview app is currently being built and deployed to AWS |"
           append: false
@@ -53,7 +53,7 @@ jobs:
       - name: Define task definition and deploy to Amazon ECS
         uses: ./.github/actions/deploy_preview@v1
 
-      - uses: ./.github/actions/post-comment@v1
+      - uses: ./.github/actions/post-comment
         with:
           message: "| \U00002705 | Yay! Visit your super cool amazing preview app here ${{ needs.deploy_app.outputs.url }} |"
           append: true
