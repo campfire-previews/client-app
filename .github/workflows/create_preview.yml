@@ -1,7 +1,3 @@
-# TO DO:
-# - ExeutionRoleArn in task def how to get this ARN?
-# - Security groups had var $SG_ID but no SG_ID defined anywhere only SG_NAME
-
 name: Create Preview App
 
 on:
