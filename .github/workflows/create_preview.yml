@@ -64,7 +64,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Define task definition and deploy to Amazon ECS
-        uses: ./.github/actions/deploy_preview@v1
+        uses: ./.github/actions/deploy-preview
 
       - name: Comment status on pull request
         uses: hasura/comment-progress@v2.3.0
