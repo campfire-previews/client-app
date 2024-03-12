@@ -66,6 +66,9 @@ jobs:
       - name: Define task definition and deploy to Amazon ECS
         id: deploy-preview-app
         uses: ./.github/actions/deploy-preview
+        with:
+          ecr-registry: ${{ steps.login-ecr.outputs.registry }}
+          image-tag: ${{ github.sha }}
 
       - name: Comment status on pull request
         uses: hasura/comment-progress@v2.3.0
