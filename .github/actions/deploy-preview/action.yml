@@ -39,8 +39,8 @@ runs:
               "image": "$IMAGE", 
               "portMappings": [
                 {
-                    "containerPort": "$PORT", 
-                    "hostPort": "$PORT", 
+                    "containerPort": $PORT, 
+                    "hostPort": $PORT, 
                     "protocol": "tcp"
                 }
               ], 
