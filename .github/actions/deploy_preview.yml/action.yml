@@ -24,11 +24,11 @@ runs:
         cat << TASK_DEF > ./task-definition.json
         {
           "executionRoleArn": "$ROLE_ARN",
-          "family": "$PREVIEW_NAME", 
+          "family": "$PROJECT-$PR_NUMBER", 
           "networkMode": "awsvpc", 
           "containerDefinitions": [
             {
-              "name": "$PREVIEW_NAME", 
+              "name": "$PROJECT-$PR_NUMBER", 
               "image": "$IMAGE", 
               "portMappings": [
                 {
@@ -63,7 +63,7 @@ runs:
       run: |
         echo "Registering Task Definition"
         echo "APP_TASK_DEF=$(aws ecs register-task-definition \
-        --family $PREVIEW_NAME \
+        --family $PROJECT-$PR_NUMBER \
         --cli-input-json file://task-definition.json \
         --query 'join(`:`,taskDefinition.[family,to_string(revision)])' \
         --output text)" >> $GITHUB_ENV
@@ -79,7 +79,7 @@ runs:
         --output text)
 
         TARGET_GROUP_ARN=$(aws elbv2 create-target-group \
-        --name $PREVIEW_NAME \
+        --name $PROJECT-$PR_NUMBER \
         --vpc-id $VPC_ID \
         --protocol HTTP \
         --port $PORT \
@@ -102,7 +102,7 @@ runs:
         [
           {
             "Field": "host-header",
-            "Values": ["$PREVIEW_NAME.$DOMAIN"]
+            "Values": ["$PROJECT-$PR_NUMBER.$DOMAIN"]
           }
         ]
         RULES
@@ -122,7 +122,7 @@ runs:
       run: |
         echo "APP_SERVICE=$(aws ecs create-service \
           --cluster $ECS_CLUSTER \
-          --service-name $PREVIEW_NAME \
+          --service-name $PROJECT-$PR_NUMBER \
           --task-definition $APP_TASK_DEF \
           --desired-count 1 \
           --launch-type FARGATE \
@@ -131,7 +131,7 @@ runs:
               securityGroups=[$SG_NAME], \
               assignPublicIp=ENABLED \
             }" \
-          --load-balancers targetGroupArn=$TARGET_GROUP_ARN,containerName=$PREVIEW_NAME,containerPort=$PORT \
+          --load-balancers targetGroupArn=$TARGET_GROUP_ARN,containerName=$PROJECT-$PR_NUMBER,containerPort=$PORT \
           --query 'service.serviceArn' \
           --output text)" >> $GITHUB_ENV
       shell: bash
@@ -141,7 +141,7 @@ runs:
       run: |
         aws ecs wait services-stable \
           --cluster $ECS_CLUSTER \
-          --services $PREVIEW_NAME
+          --services $PROJECT-$PR_NUMBER
 
-        echo "url=http://$PREVIEW_NAME.$DOMAIN" >> $GITHUB_OUTPUT
+        echo "url=http://$PROJECT-$PR_NUMBER.$DOMAIN" >> $GITHUB_OUTPUT
       shell: bash

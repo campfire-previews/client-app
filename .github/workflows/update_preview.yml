@@ -7,7 +7,6 @@ env:
   PROJECT: ${{ github.event.repository.name }}
   COMMIT_ID: ${{ github.event.pull_request.head.sha }}
   PR_NUMBER: ${{ github.event.number }}
-  PREVIEW_NAME: ${{ env.PROJECT-env.PR_NUMBER }}
   DOMAIN: feedback-interface.icyntkt.xyz/ # OurApp Subdomain
   AWS_REGION: us-east-2 # REGION
   ECR_REPOSITORY: team5-client-app-test3 # IMAGE_REPOSITORY

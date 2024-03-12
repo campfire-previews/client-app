@@ -2,7 +2,7 @@ name: Delete preview app
 description: Deletes ECR images, task definitions, and the ECS service.
 
 # Why can you use {{}} in shell script?
-# Why can we use $PREVIEW_NAME in next run?
+# Why can we use $PROJECT-$PR_NUMBER in next run?
 # WTF is this ECR_SEED_IMAGE_TAG=${{ env.PROJECT }}-seed-${{ env.PR_NUMBER }}
 runs:
   using: "composite"
@@ -34,7 +34,7 @@ runs:
 # Where does Gander do this?
     - run: |
 #        SETUP_TASK_FAMILY=$PROJECT-setup-$PR_NUMBER
-        TASK_FAMILY=$PREVIEW_NAME
+        TASK_FAMILY=$PROJECT-$PR_NUMBER
 
         SETUP_TASK_ARN=$(aws ecs list-task-definitions \
 #        --family-prefix $SETUP_TASK_FAMILY \
@@ -52,7 +52,7 @@ runs:
         echo "Deleting load balancer rules and target group"
 
         ALB_ARN=$(aws elbv2 describe-load-balancers \
-        --query 'LoadBalancers[?LoadBalancerName==`preview-app`] | [0].LoadBalancerArn' \
+        --query 'LoadBalancers[?LoadBalancerName==`our-app`] | [0].LoadBalancerArn' \
         --output text)
 
         LISTENER_ARN=$(aws elbv2 describe-listeners \
@@ -69,8 +69,8 @@ runs:
         --rule-arn $RULE_ARN
 
         TARGET_GROUP_ARN=$(aws elbv2 describe-target-groups \
-#        --names Gander-$PREVIEW_NAME \
-        --names $PREVIEW_NAME \
+#        --names Gander-$PROJECT-$PR_NUMBER \
+        --names $PROJECT-$PR_NUMBER \
         --query 'TargetGroups[0].TargetGroupArn' \
         --output text)
 
@@ -82,11 +82,11 @@ runs:
         ECS_SERVICE_NAME=$(aws ecs list-services \
         --cluster $PROJECT \
         --query 'serviceArns[*]' \
-        | grep -o "$PREVIEW_NAME[^\"]*")
+        | grep -o "$PROJECT-$PR_NUMBER[^\"]*")
 
         aws ecs delete-service \
         --cluster $PROJECT \
-        --service $ECS_SERVICE_NAME \
+        --service $PROJECT-$PR_NUMBER \
         --force \
         --query 'service.serviceName'
       shell: bash
