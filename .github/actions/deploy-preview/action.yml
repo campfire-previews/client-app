@@ -110,8 +110,8 @@ runs:
         [
           {
             "Field": "host-header",
-            "Values": ["preview.icyntkt.xyz/$PROJECT/$PR_NUMBER"]
-          }
+            "Values": ["$PROJECT-$PR_NUMBER.preview.icyntkt.xyz"]
+          },
         ]
         RULES
 
