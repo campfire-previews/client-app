@@ -7,7 +7,6 @@ env:
   PROJECT: ${{ github.event.repository.name }}
   COMMIT_ID: ${{ github.event.pull_request.head.sha }}
   PR_NUMBER: ${{ github.event.number }}
-  DOMAIN: feedback-interface.icyntkt.xyz/ # OurApp Subdomain
   AWS_REGION: us-east-2 # REGION
   ECR_REPOSITORY: team5-client-app-test3 # IMAGE_REPOSITORY
   ECS_CLUSTER: team5-client-app3-cluster # CLUSTER_NAME
@@ -41,10 +40,14 @@ jobs:
       - name: Delete preview app
         id: delete-preview
         uses: ./.github/actions/delete-preview
+        with:
+          image-tag: ${{ github.sha }}
 
       - name: Deploy updated preview app
         id: deploy-app
-        uses: ./.github/actions/deploy-preview
+        uses: ./.github/actions/deploy_preview@v1
+        with:
+          image-tag: ${{ github.sha }}
 
       - name: Generate GitHub App token
         uses: actions/create-github-app-token@v1
