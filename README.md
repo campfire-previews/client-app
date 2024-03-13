@@ -1,5 +1,7 @@
 # Client App! Not sure if I need to open a new one each time lol
 
+hahahahaha i hate this
+
 This is a temporary app to test our pull request workflow
 
 Currently, two official plugins are available:
