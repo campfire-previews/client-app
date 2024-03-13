@@ -111,7 +111,7 @@ runs:
           {
             "Field": "host-header",
             "Values": ["$PROJECT-$PR_NUMBER.preview.icyntkt.xyz"]
-          },
+          }
         ]
         RULES
 
