@@ -1,24 +1,23 @@
 name: Delete preview app
 description: Deletes ECR images, task definitions, and the ECS service.
+inputs:
+  image-tag:
+    required: true
 
-# Why can you use {{}} in shell script?
-# Why can we use $PROJECT-$PR_NUMBER in next run?
-# WTF is this ECR_SEED_IMAGE_TAG=${{ env.PROJECT }}-seed-${{ env.PR_NUMBER }}
 runs:
   using: "composite"
   steps:
     - run: |
-        IMAGE_TAG=${{ github.sha }}
+        IMAGE_TAG=${{ inputs.image-tag }}
 
-#        ECR_SEED_IMAGE_TAG=${{ env.PROJECT }}-seed-${{ env.PR_NUMBER }}
-#       included on line 18 > imageTag=$ECR_SEED_IMAGE_TAG
         aws ecr batch-delete-image \
         --repository-name $ECR_REPOPOSITORY \
         --image-ids imageTag=$IMAGE_TAG \
         --query 'imageIds[*].imageTag'
       shell: bash
+
     - run: |
-        TASK_FAMILY=${{ env.PREVIEW_NAME}}
+        TASK_FAMILY=${{ $PROJECT-$PR_NUMBER}}
 
         APP_TASK_ARN=$(aws ecs list-task-definitions \
         --family-prefix $TASK_FAMILY \
@@ -30,14 +29,10 @@ runs:
         --query 'taskDefinition.taskDefinitionArn'
       shell: bash
 
-# Why is this set up?
-# Where does Gander do this?
     - run: |
-#        SETUP_TASK_FAMILY=$PROJECT-setup-$PR_NUMBER
         TASK_FAMILY=$PROJECT-$PR_NUMBER
 
         SETUP_TASK_ARN=$(aws ecs list-task-definitions \
-#        --family-prefix $SETUP_TASK_FAMILY \
         --family-prefix $TASK_FAMILY \
 
         --query 'taskDefinitionArns[0]' \
@@ -52,7 +47,7 @@ runs:
         echo "Deleting load balancer rules and target group"
 
         ALB_ARN=$(aws elbv2 describe-load-balancers \
-        --query 'LoadBalancers[?LoadBalancerName==`our-app`] | [0].LoadBalancerArn' \
+        --query 'LoadBalancers[?LoadBalancerName==`team5-load-balancer`] | [0].LoadBalancerArn' \
         --output text)
 
         LISTENER_ARN=$(aws elbv2 describe-listeners \
@@ -69,7 +64,6 @@ runs:
         --rule-arn $RULE_ARN
 
         TARGET_GROUP_ARN=$(aws elbv2 describe-target-groups \
-#        --names Gander-$PROJECT-$PR_NUMBER \
         --names $PROJECT-$PR_NUMBER \
         --query 'TargetGroups[0].TargetGroupArn' \
         --output text)
