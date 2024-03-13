@@ -30,20 +30,6 @@ runs:
       shell: bash
 
     - run: |
-        TASK_FAMILY=$PROJECT-$PR_NUMBER
-
-        SETUP_TASK_ARN=$(aws ecs list-task-definitions \
-        --family-prefix $TASK_FAMILY \
-
-        --query 'taskDefinitionArns[0]' \
-        --output text)
-
-        aws ecs deregister-task-definition \
-        --task-definition $SETUP_TASK_ARN \
-        --query 'taskDefinition.taskDefinitionArn'
-      shell: bash
-
-    - run: |
         echo "Deleting load balancer rules and target group"
 
         ALB_ARN=$(aws elbv2 describe-load-balancers \
