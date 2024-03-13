@@ -11,7 +11,7 @@ runs:
         IMAGE_TAG=${{ inputs.image-tag }}
 
         aws ecr batch-delete-image \
-        --repository-name $ECR_REPOPOSITORY \
+        --repository-name $ECR_REPOSITORY \
         --image-ids imageTag=$IMAGE_TAG \
         --query 'imageIds[*].imageTag'
       shell: bash
