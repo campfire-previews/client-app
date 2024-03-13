@@ -45,7 +45,7 @@ jobs:
 
       - name: Deploy updated preview app
         id: deploy-app
-        uses: ./.github/actions/deploy_preview@v1
+        uses: ./.github/actions/deploy-preview
         with:
           image-tag: ${{ github.sha }}
 
