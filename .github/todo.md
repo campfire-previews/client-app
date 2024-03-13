@@ -10,4 +10,4 @@
 
 - `actions/deploy-preview/action`
   - line 100: update hardcoded lb name to client lb name created in Cloudformation
-  -
+  - update hardcoded host names for LB rule and generated URL
