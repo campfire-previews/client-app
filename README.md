@@ -4,6 +4,8 @@ hahahahaha i hate this
 
 wao!
 
+UWUWUWUWUWU
+
 This is a temporary app to test our pull request workflow
 
 Currently, two official plugins are available:
