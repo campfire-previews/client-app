@@ -151,5 +151,5 @@ runs:
           --cluster $ECS_CLUSTER \
           --services $PROJECT-$PR_NUMBER
 
-        echo "url=http://$PROJECT-$PR_NUMBER.$DOMAIN" >> $GITHUB_OUTPUT
+        echo "url=http://feedback-interface.xyz/$PROJECT/$PR_NUMBER" >> $GITHUB_OUTPUT
       shell: bash
