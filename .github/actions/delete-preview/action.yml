@@ -65,7 +65,7 @@ runs:
         | grep -o "$PROJECT-$PR_NUMBER[^\"]*")
 
         aws ecs delete-service \
-        --cluster $PROJECT \
+        --cluster $ECS_CLUSTER \
         --service $PROJECT-$PR_NUMBER \
         --force \
         --query 'service.serviceName'
