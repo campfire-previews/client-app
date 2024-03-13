@@ -60,7 +60,7 @@ runs:
 
     - run: |
         ECS_SERVICE_NAME=$(aws ecs list-services \
-        --cluster $PROJECT \
+        --cluster $ECS_CLUSTER \
         --query 'serviceArns[*]' \
         | grep -o "$PROJECT-$PR_NUMBER[^\"]*")
 
