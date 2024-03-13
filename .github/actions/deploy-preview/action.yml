@@ -2,8 +2,6 @@
 name: Deploy preview app
 description: Build image, define task, and deploy with fargate
 inputs:
-  ecr-registry:
-    required: true
   image-tag:
     required: true
 outputs:
@@ -16,7 +14,6 @@ runs:
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
       env:
-        ECR_REGISTRY: ${{ inputs.ecr-registry }}
         IMAGE_TAG: ${{ inputs.image-tag }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .

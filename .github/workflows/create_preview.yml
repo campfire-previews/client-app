@@ -60,11 +60,14 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: set ECR Registry Environment Variable
+        run: |
+          echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
+
       - name: Define task definition and deploy to Amazon ECS
         id: deploy-preview-app
         uses: ./.github/actions/deploy-preview
         with:
-          ecr-registry: ${{ steps.login-ecr.outputs.registry }}
           image-tag: ${{ github.sha }}
 
       - name: Comment status on pull request
