@@ -1,4 +1,4 @@
-# Client App!
+# Client App! Not sure if I need to open a new one each time lol
 
 This is a temporary app to test our pull request workflow
 
