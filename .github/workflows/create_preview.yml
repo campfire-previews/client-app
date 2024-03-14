@@ -16,7 +16,7 @@ env:
   ECS_CLUSTER: team5-client-app3-cluster # CLUSTER_NAME
   PORT: 5173 # PORT
   ROLE_ARN: arn:aws:iam::126480444030:role/ecsTaskExecutionRole # EXECUTION_ROLE_ARN
-  LB_NAME: team5-load-balancer
+  LB_NAME: team5-load-balancer # DEFAULT_LB
   SUBNET_NAME: subnet-01cef9a94723b1c34 # DEFAULT_SUBNET
   SG_NAME: sg-0dd59509b20ad0cfd # SECURITY_GROUP
 
@@ -39,10 +39,10 @@ jobs:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
-      - name: Comment status on pull request
+      - name: Comment Build Status as Started
         uses: hasura/comment-progress@v2.3.0
         with:
-          id: status-notification
+          id: status-comment
           github-token: ${{ steps.app-token.outputs.token }}
           repository: ${{ github.repository }}
           number: ${{ env.PR_NUMBER }}
@@ -60,20 +60,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: set ECR Registry Environment Variable
+      - name: Set ECR Registry Environment Variable
         run: |
           echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
 
-      - name: Define task definition and deploy to Amazon ECS
+      - name: Deploy App to Amazon ECS
         id: deploy-preview-app
         uses: ./.github/actions/deploy-preview
-        with:
-          image-tag: ${{ github.sha }}
 
-      - name: Comment status on pull request
+      - name: Comment Build Status as Completed
         uses: hasura/comment-progress@v2.3.0
         with:
-          id: status-notification
+          id: status-comment
           github-token: ${{ steps.app-token.outputs.token }}
           repository: ${{ github.repository }}
           number: ${{ env.PR_NUMBER }}

@@ -1,14 +1,11 @@
 name: Delete preview app
 description: Deletes ECR images, task definitions, and the ECS service.
-inputs:
-  image-tag:
-    required: true
 
 runs:
   using: "composite"
   steps:
     - run: |
-        IMAGE_TAG=${{ inputs.image-tag }}
+        IMAGE_TAG=$GITHUB_SHA
 
         aws ecr batch-delete-image \
         --repository-name $ECR_REPOSITORY \
@@ -66,7 +63,7 @@ runs:
 
         aws ecs delete-service \
         --cluster $ECS_CLUSTER \
-        --service $PROJECT-$PR_NUMBER \
+        --service $ECS_SERVICE_NAME \
         --force \
         --query 'service.serviceName'
       shell: bash

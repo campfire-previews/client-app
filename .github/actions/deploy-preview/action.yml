@@ -1,9 +1,6 @@
-# Will need to update line 100 to the client's load balancer name
 name: Deploy preview app
-description: Build image, define task, and deploy with fargate
-inputs:
-  image-tag:
-    required: true
+description: Build image, create task definition, and deploy with AWS Fargate
+
 outputs:
   url:
     value: ${{ steps.generate-url.outputs.url }}
@@ -13,9 +10,9 @@ runs:
   steps:
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
-      env:
-        IMAGE_TAG: ${{ inputs.image-tag }}
       run: |
+        IMAGE_TAG =$GITHUB_SHA
+
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
@@ -125,9 +122,11 @@ runs:
 
     - name: "Launching App Service"
       run: |
+        echo "Launching App Service"
+
         echo "APP_SERVICE=$(aws ecs create-service \
           --cluster $ECS_CLUSTER \
-          --service-name $PROJECT-$PR_NUMBER \
+          --service-name $PROJECT-$PR_NUMBER-$GITHUB_SHA \
           --task-definition $APP_TASK_DEF \
           --desired-count 1 \
           --launch-type FARGATE \
@@ -146,7 +145,7 @@ runs:
       run: |
         aws ecs wait services-stable \
           --cluster $ECS_CLUSTER \
-          --services $PROJECT-$PR_NUMBER
+          --services $PROJECT-$PR_NUMBER-$GITHUB_SHA
 
         echo "url=http://feedback-interface.xyz/$PROJECT/$PR_NUMBER" >> $GITHUB_OUTPUT
       shell: bash
