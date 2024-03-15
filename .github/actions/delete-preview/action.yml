@@ -35,7 +35,7 @@ runs:
 
         LISTENER_ARN=$(aws elbv2 describe-listeners \
         --load-balancer-arn $ALB_ARN \
-        --query 'Listeners[?Port==`80`] | [0].ListenerArn' \
+        --query 'Listeners[?Port==`443`] | [0].ListenerArn' \
         --output text)
 
         RULE_ARN=$(aws elbv2 describe-rules \
