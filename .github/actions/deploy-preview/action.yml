@@ -147,5 +147,5 @@ runs:
           --cluster $ECS_CLUSTER \
           --services $PROJECT-$PR_NUMBER-$GITHUB_SHA
 
-        echo "url=https://feedback-interface.xyz/$PROJECT/$PR_NUMBER" >> $GITHUB_OUTPUT
+        echo "url=https://feedback-interface.icyntkt.xyz/$PROJECT/$PR_NUMBER" >> $GITHUB_OUTPUT
       shell: bash
