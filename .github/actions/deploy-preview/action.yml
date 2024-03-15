@@ -97,7 +97,7 @@ runs:
 
         LISTENER_ARN=$(aws elbv2 describe-listeners \
         --load-balancer-arn $ALB_ARN \
-        --query 'Listeners[?Port==`80`] | [0].ListenerArn' \
+        --query 'Listeners[?Port==`443`] | [0].ListenerArn' \
         --output text)
 
         cat << RULES >> ./rules-conditions.json
@@ -147,5 +147,5 @@ runs:
           --cluster $ECS_CLUSTER \
           --services $PROJECT-$PR_NUMBER-$GITHUB_SHA
 
-        echo "url=http://feedback-interface.xyz/$PROJECT/$PR_NUMBER" >> $GITHUB_OUTPUT
+        echo "url=https://feedback-interface.xyz/$PROJECT/$PR_NUMBER" >> $GITHUB_OUTPUT
       shell: bash
