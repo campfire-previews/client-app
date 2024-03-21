@@ -1,8 +1,13 @@
 import { useState } from "react";
 import campfireLogo from "/campfire.png";
 import "./App.css";
+import CampfireSDK from "../CampfireSDK";
 
 function App() {
+	useEffect(() => {
+		CampfireSDK.init();
+	}, [])
+
   return (
     <>
       <div>
