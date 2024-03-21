@@ -8,7 +8,6 @@ class CampfireSDK {
 	static init() {
 		if (window) {
 			window.addEventListener("message", (e) => {
-				console.log(e.data)
 				// We want to retrieve the domain of the parent app's URL
 				// Eventually, we'll want to check if the origin is https://feedback-interface.DOMAIN
 				// for a layer of security.
