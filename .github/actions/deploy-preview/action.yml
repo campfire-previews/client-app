@@ -9,7 +9,6 @@ runs:
   using: "composite"
   steps:
     - name: Install pack-cli
-      id: build-image
       run: |
         sudo add-apt-repository ppa:cncf-buildpacks/pack-cli && \
         sudo apt-get update && \
@@ -33,8 +32,6 @@ runs:
       shell: bash
 
     - name: Create task definition file
-      env:
-        IMAGE: ${{ steps.build-image.outputs.image }}
       id: create-task-def
       run: |
         cat << TASK_DEF > ./task-definition.json
@@ -45,7 +42,7 @@ runs:
           "containerDefinitions": [
             {
               "name": "$PROJECT-$PR_NUMBER", 
-              "image": "$IMAGE", 
+              "image": "$IMAGE_ARN", 
               "portMappings": [
                 {
                     "containerPort": $PORT, 
