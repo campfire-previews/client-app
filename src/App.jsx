@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import campfireLogo from "/campfire-no-bg.png";
-import campfireTitle from "/campfire-title.png";
 import "./App.css";
 import CampfireSDK from "./CampfireSDK";
 
