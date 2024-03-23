@@ -29,6 +29,7 @@ runs:
         --builder $BUILDER \
         --path $SERVER_PATH \
         --publish
+        --env BP_LOG_LEVEL=DEBUG
         echo "IMAGE_ARN=$IMAGE_ARN" >> $GITHUB_ENV
       shell: bash
 
