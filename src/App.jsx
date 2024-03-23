@@ -11,7 +11,7 @@ function App() {
 	const [index, setIndex] = useState(0)
 
 	useEffect(() => {
-		CampfireSDK.init();
+		new CampfireSDK().init();
 	}, [])
 
 	const changeBackground = () => {
