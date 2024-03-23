@@ -19,7 +19,7 @@ env:
   LB_NAME: team5-load-balancer # DEFAULT_LB
   SUBNET_NAME: subnet-01cef9a94723b1c34 # DEFAULT_SUBNET
   SG_NAME: sg-0dd59509b20ad0cfd # SECURITY_GROUP
-  SERVER_PATH: ./ # APP_SERVER_PATH
+  SERVER_PATH: . # APP_SERVER_PATH
   BUILDER: paketobuildpacks/builder:base # CNBP_BUILDER
 
 permissions:
