@@ -8,30 +8,19 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Install pack-cli
-      run: |
-        sudo add-apt-repository ppa:cncf-buildpacks/pack-cli && \
-        sudo apt-get update && \
-        sudo apt-get install pack-cli
-      shell: bash
-
-    # If your application needs environment variables to run,
-    # Create github secrets for them and put them in this file
-    # by inserting lines like these between line 23 and line 24:
-    #    --env VAR1=${{ secrets.VAR1 }} \
-    #    --env VAR2=${{ secrets.VAR2 }} \
-
     - name: Build, tag, and push image to Amazon ECR
+      id: build-image
       run: |
-        IMAGE_ARN=$ECR_REGISTRY/$ECR_REPOSITORY:$PROJECT-$PR_NUMBER
-        pack build $IMAGE_ARN \
-        --builder $BUILDER \
-        --path $SERVER_PATH \
-        --publish
-        echo "IMAGE_ARN=$IMAGE_ARN" >> $GITHUB_ENV
+        IMAGE_TAG=$GITHUB_SHA
+
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Create task definition file
+      env:
+        IMAGE: ${{ steps.build-image.outputs.image }}
       id: create-task-def
       run: |
         cat << TASK_DEF > ./task-definition.json
@@ -42,7 +31,7 @@ runs:
           "containerDefinitions": [
             {
               "name": "$PROJECT-$PR_NUMBER", 
-              "image": "$IMAGE_ARN", 
+              "image": "$IMAGE", 
               "portMappings": [
                 {
                     "containerPort": $PORT, 
