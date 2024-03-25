@@ -43,15 +43,9 @@ class CampfireSDK {
 		});
 	}
 
-	establishWSConnection() {
-		this.ws = new WebSocket("ws://locahost:5173");
-		this.ws.addEventListener("open", () => console.log("opened connection"));
-	}
-
 	init() {
 		this.initRrweb();
 		this.initCSSEditor();
-		this.establishWSConnection();
 	}
 }
 
