@@ -45,7 +45,7 @@ runs:
                 "options": {
                   "awslogs-create-group": "true",
                   "awslogs-region": "$AWS_REGION",
-                  "awslogs-group": "our-app-logs-$PROJECT",
+                  "awslogs-group": "campfire-logs-$PROJECT",
                   "awslogs-stream-prefix": "$PROJECT"
                 }
               }
