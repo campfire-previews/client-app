@@ -1,7 +1,8 @@
-name: "Update Preview App"
+name: "Delete Preview App"
 on:
   pull_request:
-    types: [closed]
+    types:
+      - closed
 
 env:
   PROJECT: ${{ github.event.repository.name }}
