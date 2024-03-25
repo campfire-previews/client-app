@@ -1,11 +1,103 @@
 body {
   background-color: #272f3f;
-  /* background-color: #363f54; */
-  /* background-color: #F5E5CA; */
-  /* background-color: #E2554f; */
-  /* background-color: #ed6b2c; */
-  /* background-color: #ed9837; */
-  /* background-color: #efbe43; */
+  /* background-color: #363f54;
+  background-color: #F5E5CA;
+  background-color: #E2554f;
+  background-color: #ed6b2c;
+  background-color: #ed9837;
+  background-color: #efbe43; */
+}
+
+body.dark {
+	background-image: 
+		linear-gradient(to bottom right, 
+			#272f3f, 
+			#272f3f
+		);
+
+	background-size: 400%;
+
+	animation-name: gradient;
+	animation-duration: 5s;
+	animation-direction: alternate;
+	animation-iteration-count: infinite;
+	animation-timing-function: ease-in-out;
+}
+
+body.redOrange {
+	background-image: 
+		linear-gradient(to bottom right, 
+			#E2554f, 
+			#eba04a
+		);
+
+	background-size: 200%;
+
+	animation-name: gradient;
+	animation-duration: 5s;
+	animation-direction: alternate;
+	animation-iteration-count: infinite;
+	animation-timing-function: ease-in-out;
+}
+
+body.bluePurple {
+	background-image: 
+		linear-gradient(to bottom right, 
+		rgba(27, 31, 223, 0.764), 
+		rgba(153, 82, 228, 0.764)
+	);
+
+	background-size: 400%;
+
+	animation-name: circular-gradient;
+	animation-duration: 10s;
+	animation-direction: alternate;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
+}
+
+body.yellowBlue {
+	background-image: 
+		linear-gradient(to bottom right, 
+		#efbe43, 
+		#603cff
+		);
+
+	background-size: 200%;
+
+	animation-name: gradient;
+	animation-duration: 5s;
+	animation-direction: alternate;
+	animation-iteration-count: infinite;
+	animation-timing-function: ease-in-out;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+@keyframes circular-gradient {
+  0% {
+    background-position: 0% 0%;
+  }
+
+	25% {
+    background-position: 100% 0%;
+  }
+
+	50% {
+    background-position: 100% 100%;
+  }
+
+  100% {
+    background-position: 0% 100%;
+  }
 }
 
 #root {
@@ -20,6 +112,7 @@ body {
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
+	border-radius: 50%;
 }
 .logo:hover {
   /* filter: drop-shadow(0 0 2em #ED9837); */
