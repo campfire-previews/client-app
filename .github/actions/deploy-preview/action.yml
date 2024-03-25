@@ -8,28 +8,14 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Install pack-cli
+    - name: Build, tag, and push image to Amazon ECR
       id: build-image
       run: |
-        sudo add-apt-repository ppa:cncf-buildpacks/pack-cli && \
-        sudo apt-get update && \
-        sudo apt-get install pack-cli
-      shell: bash
+        IMAGE_TAG=$GITHUB_SHA
 
-    # If your application needs environment variables to run,
-    # Create github secrets for them and put them in this file
-    # by inserting lines like these between line 23 and line 24:
-    #    --env VAR1=${{ secrets.VAR1 }} \
-    #    --env VAR2=${{ secrets.VAR2 }} \
-
-    - name: Build, tag, and push image to Amazon ECR
-      run: |
-        IMAGE_ARN=$ECR_REGISTRY/$ECR_REPOSITORY:$PROJECT-$PR_NUMBER
-        pack build $IMAGE_ARN \
-        --builder $BUILDER \
-        --path $SERVER_PATH \
-        --publish
-        echo "IMAGE_ARN=$IMAGE_ARN" >> $GITHUB_ENV
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Create task definition file
