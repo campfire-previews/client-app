@@ -45,7 +45,7 @@ class CampfireSDK {
 
 	init() {
 		this.initRrweb();
-		this.initCSSEditor();
+		// this.initCSSEditor();
 	}
 }
 
