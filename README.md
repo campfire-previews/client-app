@@ -1,4 +1,4 @@
-# Client App! new pull request
+# Client App Demo for Campfire
 
 new commit on pull request
 This is a temporary app to test our pull request workflow
