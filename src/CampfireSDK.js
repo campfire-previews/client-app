@@ -14,7 +14,8 @@ class CampfireSDK {
 				// for a layer of security.
 
 				// Match (regexp) if origin is [https://(.+).feedback-interface]
-				if (e.origin === "http://localhost:5173") {
+				const validOriginRegExp = /https:\/\/feedback-interface\.(.*)/
+				if (validOriginRegExp.test(e.origin)) {
 					console.log("origin: ", e.origin)
 					new rrweb.record({
 						emit() {},
